@@ -88,8 +88,8 @@ button:active{transform:scale(.98)}
   </div>
   <div class="seglabel">問題数</div>
   <div class="seg" id="segq">
-    <button data-q="5" class="sel" onclick="setQ('5')">5問</button>
-    <button data-q="10" onclick="setQ('10')">10問</button>
+    <button data-q="3" onclick="setQ('3')">3問</button>
+    <button data-q="6" onclick="setQ('6')">6問</button>
     <button data-q="all" onclick="setQ('all')">すべて</button>
   </div>
   <div class="seglabel">目標スコアを選んでスタート</div>
@@ -163,13 +163,14 @@ const PAT={1:['第1','SV'],2:['第2','SVC'],3:['第3','SVO'],4:['第4','SVOO'],5
 const LVNAME={b500:'TOEIC 500',b600:'TOEIC 600',b730:'TOEIC 730',b800:'TOEIC 800+'};
 const MODENAME={tag:'タグ付け＋文型判定',fill:'空所補充',mix:'ミックス'};
 
-let mode='mix',qcount='5',level=null,queue=[],idx=0,results=[];
+let mode='mix',qcount='6',level=null,queue=[],idx=0,results=[];
 let curLabels=[],curPattern=null,answered=false;
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById('screen-'+id).classList.add('on');}
 function goStart(){show('start');}
-function setMode(m){mode=m;document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('sel',b.dataset.m===m));}
-function setQ(q){qcount=q;document.querySelectorAll('#segq button').forEach(b=>b.classList.toggle('sel',b.dataset.q===q));}
+function styleSeg(b,on){if(on){b.style.background='var(--color-text-info)';b.style.borderColor='var(--color-text-info)';b.style.color='var(--color-background-primary)';b.style.fontWeight='600';}else{b.style.background='';b.style.borderColor='';b.style.color='';b.style.fontWeight='';}}
+function setMode(m){mode=m;document.querySelectorAll('#seg button').forEach(b=>styleSeg(b,b.dataset.m===m));}
+function setQ(q){qcount=q;document.querySelectorAll('#segq button').forEach(b=>styleSeg(b,b.dataset.q===q));}
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 
 function startSession(lv){
@@ -205,7 +206,7 @@ function renderTag(){
   u+='</div>';
   u+='<div class="legend2">'+['S','V','O','C','M'].map(l=>`<span><b style="background:${LBL[l].bg};color:${LBL[l].c}">${l}</b>${({S:'主語',V:'動詞',O:'目的語',C:'補語',M:'修飾語'})[l]}</span>`).join('')+'</div>';
   u+='<div class="pat-label">この文の文型は？</div><div class="pat-grid">';
-  for(let n=1;n<=5;n++){const sel=curPattern===n?'sel':'';u+=`<button class="pat-btn ${sel}" onclick="selectPattern(${n})"><span class="pn">${PAT[n][0]}</span>${PAT[n][1]}</button>`;}
+  for(let n=1;n<=5;n++){const on=curPattern===n;const st=on?' style="background:var(--color-text-info);border-color:var(--color-text-info);color:var(--color-background-primary);font-weight:700"':'';u+=`<button class="pat-btn"${st} onclick="selectPattern(${n})"><span class="pn">${PAT[n][0]}</span>${PAT[n][1]}</button>`;}
   u+='</div>';
   const allLabeled=curLabels.every(x=>x),done=allLabeled&&curPattern;
   u+='<div class="btn-row"><button class="primary" style="flex:1'+(done?'':';opacity:.45;cursor:not-allowed')+'" '+(done?'':'disabled')+' onclick="submitTag()">答え合わせ</button></div>';
@@ -313,3 +314,6 @@ function copySummary(){
 }
 function flashCopied(){const b=event.target.closest('button');const o=b.innerHTML;b.innerHTML='<i class="ti ti-check"></i> コピーしました';setTimeout(()=>b.innerHTML=o,1500);}
 function selectSum(){const el=document.getElementById('sum');const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);}
+
+// 初期選択（出題形式=ミックス, 問題数=6）を視覚的に反映
+setMode(mode);setQ(qcount);
