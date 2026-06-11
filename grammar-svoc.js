@@ -127,9 +127,9 @@ button:active{transform:scale(.98)}
   <div id="report-body"></div>
   <div class="btn-row">
     <button class="primary" onclick="copySummary()" style="flex:1"><i class="ti ti-copy" aria-hidden="true"></i> 結果をコピー</button>
-    <button onclick="goStart()" style="flex:1"><i class="ti ti-arrow-back-up" aria-hidden="true"></i> 最初の画面へ</button>
+    <button onclick="goStart()" style="flex:1"><i class="ti ti-rotate" aria-hidden="true"></i> もう一度</button>
   </div>
-  <p class="sub" style="text-align:center;margin-top:10px">「最初の画面へ」＝設定を変えて／シャッフルで再挑戦。<br>全く新しい問題が欲しい時は、チャットで「新しい問題セット」と伝えてください。</p>
+  <p class="sub" style="text-align:center;margin-top:10px">「もう一度」＝同じ問題をシャッフルして再挑戦。<br><b>新しい問題・別の難易度</b>が欲しい時は、チャットで「新しい問題」と伝えてください。</p>
 </div>
 </div>
 `;
@@ -164,10 +164,22 @@ const LVNAME={b500:'TOEIC 500',b600:'TOEIC 600',b730:'TOEIC 730',b800:'TOEIC 800
 const MODENAME={tag:'タグ付け＋文型判定',fill:'空所補充',mix:'ミックス'};
 
 let mode='mix',qcount='6',level=null,queue=[],idx=0,results=[];
-let curLabels=[],curPattern=null,answered=false;
+let curLabels=[],curPattern=null,answered=false,directMode=false;
+
+// 直行モード：チャットで選択済みの問題セット(window.GSVOC_SESSION)を受け取り、
+// 選択画面を飛ばしていきなり問題画面から始める。
+// GSVOC_SESSION = { level:'b730', mode:'mix', problems:[ {..}, {..} ] }
+function startDirect(){
+  const s=window.GSVOC_SESSION||{};
+  directMode=true;
+  level=s.level||'b730';mode=s.mode||'mix';
+  queue=shuffle(s.problems||[]);idx=0;results=[];
+  if(!queue.length){document.getElementById('gsvoc').innerHTML='<p style="font-family:var(--font-sans);color:var(--color-text-secondary);padding:1rem">問題がありません。チャットで条件を選び直してください。</p>';return;}
+  show('practice');loadProblem();
+}
 
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById('screen-'+id).classList.add('on');}
-function goStart(){show('start');}
+function goStart(){if(directMode&&window.GSVOC_SESSION){startDirect();}else{show('start');}}
 function styleSeg(b,on){if(on){b.style.background='var(--color-text-info)';b.style.borderColor='var(--color-text-info)';b.style.color='var(--color-background-primary)';b.style.fontWeight='600';}else{b.style.background='';b.style.borderColor='';b.style.color='';b.style.fontWeight='';}}
 function setMode(m){mode=m;document.querySelectorAll('#seg button').forEach(b=>styleSeg(b,b.dataset.m===m));}
 function setQ(q){qcount=q;document.querySelectorAll('#segq button').forEach(b=>styleSeg(b,b.dataset.q===q));}
@@ -315,5 +327,9 @@ function copySummary(){
 function flashCopied(){const b=event.target.closest('button');const o=b.innerHTML;b.innerHTML='<i class="ti ti-check"></i> コピーしました';setTimeout(()=>b.innerHTML=o,1500);}
 function selectSum(){const el=document.getElementById('sum');const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);}
 
-// 初期選択（出題形式=ミックス, 問題数=6）を視覚的に反映
-setMode(mode);setQ(qcount);
+// 起動：直行モード(チャットで選択済み)があればそれを優先。なければ従来の選択画面。
+if(typeof window!=='undefined' && window.GSVOC_SESSION){
+  startDirect();
+}else{
+  setMode(mode);setQ(qcount); // 選択画面の初期ハイライト
+}
