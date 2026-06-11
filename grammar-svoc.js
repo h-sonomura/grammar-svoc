@@ -92,23 +92,19 @@ button:active{transform:scale(.98)}
     <button data-q="6" onclick="setQ('6')">6問</button>
     <button data-q="all" onclick="setQ('all')">すべて</button>
   </div>
-  <div class="seglabel">目標スコアを選んでスタート</div>
+  <div class="seglabel">目標レベルを選んでスタート</div>
   <div class="level-grid">
-    <div class="lcard" onclick="startSession('b500')">
-      <div class="licon"><i class="ti ti-number-5" aria-hidden="true"></i></div>
-      <div class="lname">TOEIC 500</div><div class="ldesc">基礎・短い文<br>銀フレ相当の語彙</div>
-    </div>
     <div class="lcard" onclick="startSession('b600')">
       <div class="licon"><i class="ti ti-number-6" aria-hidden="true"></i></div>
-      <div class="lname">TOEIC 600</div><div class="ldesc">修飾語つき<br>O/C識別の基本</div>
+      <div class="lname">基礎（〜600）</div><div class="ldesc">5文型の識別が軸<br>受動・動名詞・不定詞の基本</div>
     </div>
     <div class="lcard" onclick="startSession('b730')">
       <div class="licon"><i class="ti ti-number-7" aria-hidden="true"></i></div>
-      <div class="lname">TOEIC 730</div><div class="ldesc">複文・第5文型<br>紛らわしい選択肢</div>
+      <div class="lname">中級（730）</div><div class="ldesc">語法・関係詞・接続詞<br>準動詞が文型要素に</div>
     </div>
     <div class="lcard" onclick="startSession('b800')">
       <div class="licon"><i class="ti ti-target-arrow" aria-hidden="true"></i></div>
-      <div class="lname">TOEIC 800+</div><div class="ldesc">本番級の長文<br>関係詞・分詞で修飾</div>
+      <div class="lname">上級（800+）</div><div class="ldesc">whose/仮定法/倒置/並列<br>埋め込みの長文</div>
     </div>
   </div>
 </div>
@@ -141,12 +137,11 @@ button:active{transform:scale(.98)}
 
 // 問題データ：インラインの window.GSVOC_P が最優先。無ければ下のフォールバック。
 const DEFAULT_P = {
-  b500: [
-    { type:'tag', units:[{t:'The shipment',lbl:'S'},{t:'arrived',lbl:'V'},{t:'on time',lbl:'M'}], pattern:1, cat:'第1文型SV', subcats:['自他動詞'], ja:'その荷物は時間通りに到着した。', exp:'arrive は目的語をとらない自動詞。on time は副詞句(M)なので骨格は S＋V の第1文型。' },
-    { type:'fill', pre:'The candidate ', post:' highly qualified for the position.', choices:['seems','sees','makes','gives'], ans:0, cat:'第2文型SVC', subcats:['補語の種類'], ja:'その候補者はその職に非常に適しているように見える。', exp:'qualified(形容詞)が補語Cになるのは S＝C を表す第2文型動詞 seem。他動詞 make/give は文型が合わない。' }
-  ],
   b600: [
-    { type:'tag', units:[{t:'The news',lbl:'S'},{t:'made',lbl:'V'},{t:'the staff',lbl:'O'},{t:'happy',lbl:'C'}], pattern:5, cat:'第5文型SVOC', subcats:['O・C識別'], ja:'その知らせはスタッフを喜ばせた。', exp:'make O C「OをCにする」の第5文型。the staff ＝ happy（O＝C）なので happy は補語C。' }
+    { type:'tag', units:[{t:'The shipment',lbl:'S'},{t:'arrived',lbl:'V'},{t:'on time',lbl:'M'}], pattern:1, cat:'第1文型SV', subcats:['自他動詞'], ja:'その荷物は時間通りに到着した。', exp:'arrive は目的語をとらない自動詞。on time は副詞句(M)なので骨格は S＋V の第1文型。' },
+    { type:'tag', units:[{t:'The news',lbl:'S'},{t:'made',lbl:'V'},{t:'the staff',lbl:'O'},{t:'happy',lbl:'C'}], pattern:5, cat:'第5文型SVOC', subcats:['O・C識別'], ja:'その知らせはスタッフを喜ばせた。', exp:'make O C「OをCにする」の第5文型。the staff ＝ happy（O＝C）なので happy は補語C。' },
+    { type:'fill', pre:'The new employees ', post:' required to attend Monday\'s orientation.', choices:['is','are','was','being'], ans:1, cat:'第3文型SVO', subcats:['態（受動態）'], ja:'新入社員は月曜のオリエンに出席を求められている。', exp:'be動詞が並ぶので「数＋態」で判断。複数主語 employees ＋受動なので are required。【罠：態＋一致】' },
+    { type:'fill', pre:'The board decided ', post:' the meeting until next week.', choices:['postpone','to postpone','postponing','postponed'], ans:1, cat:'第3文型SVO', subcats:['準動詞（動名詞・不定詞）'], ja:'役員会は会議を来週まで延期することを決めた。', exp:'decide は to不定詞を目的語にとる（decide to do）。動名詞 postponing は不可。【罠：不定詞の語法】' }
   ],
   b730: [
     { type:'fill', pre:'The committee found the proposal ', post:' after a careful review.', choices:['accept','acceptable','acceptably','acceptance'], ans:1, cat:'第5文型SVOC', subcats:['補語の種類'], ja:'委員会は慎重な検討の後、その提案は受け入れられると判断した。', exp:'find O C「OがCだと分かる」の第5文型。C には形容詞 acceptable。副詞 acceptably は補語になれない。' }
@@ -160,7 +155,7 @@ const P = (typeof window!=='undefined' && window.GSVOC_P) ? window.GSVOC_P : DEF
 const LBL={S:{bg:'var(--color-background-info)',c:'var(--color-text-info)'},V:{bg:'var(--color-background-success)',c:'var(--color-text-success)'},O:{bg:'var(--color-background-warning)',c:'var(--color-text-warning)'},C:{bg:'var(--color-background-danger)',c:'var(--color-text-danger)'},M:{bg:'var(--color-background-secondary)',c:'var(--color-text-tertiary)'}};
 const CYCLE=['','S','V','O','C','M'];
 const PAT={1:['第1','SV'],2:['第2','SVC'],3:['第3','SVO'],4:['第4','SVOO'],5:['第5','SVOC']};
-const LVNAME={b500:'TOEIC 500',b600:'TOEIC 600',b730:'TOEIC 730',b800:'TOEIC 800+'};
+const LVNAME={b600:'基礎(〜600)',b730:'中級(730)',b800:'上級(800+)'};
 const MODENAME={tag:'タグ付け＋文型判定',fill:'空所補充',mix:'ミックス'};
 
 let mode='mix',qcount='6',level=null,queue=[],idx=0,results=[];
@@ -188,7 +183,7 @@ function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor
 function startSession(lv){
   level=lv;
   let pool=[];
-  if(lv==='mix'){['b500','b600','b730','b800'].forEach(k=>{if(P[k])pool=pool.concat(P[k]);});}
+  if(lv==='mix'){['b600','b730','b800'].forEach(k=>{if(P[k])pool=pool.concat(P[k]);});}
   else pool=(P[lv]||[]).slice();
   if(mode!=='mix')pool=pool.filter(p=>p.type===mode);
   pool=shuffle(pool);
